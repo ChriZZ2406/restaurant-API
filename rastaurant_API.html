@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Restaurant API</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="server.js"></script>
+
+</head>
+<body>
+  <h1>Restaurant API</h1>
+
+  <!-- Formular zum Hinzufügen eines Restaurants -->
+  <h2>Restaurant hinzufügen:</h2>
+  <form id="addRestaurantForm">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" required>
+    <br>
+    <label for="address">Adresse:</label>
+    <input type="text" id="address" name="address" required>
+    <br>
+    <label for="category">Kategorie:</label>
+    <input type="text" id="category" name="category" required>
+    <br>
+    <input type="submit" value="Restaurant hinzufügen">
+  </form>
+
+  <!-- Formular zum Überprüfen, ob ein Restaurant existiert -->
+  <h2>Restaurant überprüfen:</h2>
+  <form id="checkRestaurantForm">
+    <label for="checkName">Name:</label>
+    <input type="text" id="checkName" name="name" required>
+    <br>
+    <input type="submit" value="Restaurant überprüfen">
+  </form>
+
+  <!-- Ausgabe der Restaurantdaten -->
+  <h2>Alle Restaurants anzeigen:</h2>
+  <div id="restaurantList"></div>
+
+  <!-- Button zum Anzeigen aller Restaurants -->
+  <button id="showAllRestaurantsButton">Alle Restaurants anzeigen</button>
+
+  <!-- Formular zum Löschen eines Restaurants -->
+  <h2>Restaurant löschen:</h2>
+  <form id="deleteRestaurantForm">
+    <label for="deleteName">Name:</label>
+    <input type="text" id="deleteName" name="name" required>
+    <br>
+    <input type="submit" value="Restaurant löschen">
+  </form>
+
+  <script>
+    // Funktion zum Anzeigen der Restaurantliste
+    function showRestaurantList() {
+      $.get('/restaurants', function(data) {
+        var restaurantList = '';
+        data.forEach(function(restaurant) {
+          restaurantList += '<p>Name: ' + restaurant.name + '</p>';
+          restaurantList += '<p>Adresse: ' + restaurant.address + '</p>';
+          restaurantList += '<p>Kategorie: ' + restaurant.category + '</p>';
+          restaurantList += '<hr>';
+        });
+        $('#restaurantList').html(restaurantList);
+      });
+    }
+
+    // Funktion zum Hinzufügen eines Restaurants
+    $('#addRestaurantForm').submit(function(event) {
+      event.preventDefault();
+      var name = $('#name').val();
+      var address = $('#address').val();
+      var category = $('#category').val();
+      $.post('/restaurant', { name: name, address: address, category: category }, function(response) {
+        alert(response);
+        showRestaurantList();
+      });
+      this.reset();
+    });
+
+    // Funktion zum Überprüfen, ob ein Restaurant existiert
+    $('#checkRestaurantForm').submit(function(event) {
+      event.preventDefault();
+      var name = $('#checkName').val();
+      $.get('/restaurant/' + name, function(data) {
+        alert('Das Restaurant existiert.');
+      }).fail(function() {
+        alert('Das Restaurant existiert nicht.');
+      });
+      this.reset();
+    });
+
+    // Funktion zum Löschen eines Restaurants
+    $('#deleteRestaurantForm').submit(function(event) {
+      event.preventDefault();
+      var name = $('#deleteName').val();
+      $.ajax({
+        url: '/restaurant/' + name,
+        type: 'DELETE',
+        success: function(response) {
+          alert('Das Restaurant wurde erfolgreich gelöscht.');
+          showRestaurantList();
+        },
+        error: function() {
+          alert('Das Restaurant konnte nicht gefunden werden.');
+        }
+      });
+      this.reset();
+    });
+
+    // Klick-Event für den Button zum Anzeigen aller Restaurants
+    $('#showAllRestaurantsButton').click(function() {
+      showRestaurantList();
+    });
+
+    // Initialisierung: Zeige die Restaurantliste beim Laden der Seite an
+    showRestaurantList();
+  </script>
+</body>
+</html>
